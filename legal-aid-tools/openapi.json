@@ -1,0 +1,140 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Legal Aid Tools - Contract Parser",
+    "description": "Extracts plain text from contract documents (PDF or DOCX). Upload the file via multipart/form-data. Files larger than 10 MB or in unsupported formats are rejected. Scanned / image-only PDFs return an error with OCR guidance.",
+    "contact": {
+      "name": "Legal Aid Tools"
+    },
+    "license": {
+      "name": "MIT"
+    },
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://overlord-rimmed-empower.ngrok-free.dev",
+      "description": "Live tunnel (ngrok)"
+    }
+  ],
+  "paths": {
+    "/parse-contract": {
+      "post": {
+        "tags": [
+          "Contract Parsing"
+        ],
+        "summary": "Extract text from a contract document",
+        "description": "Upload a PDF or DOCX contract file. The server extracts all plain text and returns it as a JSON string. PDF strategy: tries pypdf first, falls back to pdfplumber for complex layouts. Returns an error for scanned or image-only PDFs. Size limit: 10 MB.",
+        "operationId": "parse_contract_document",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "PDF or DOCX contract file to parse (max 10 MB)."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Text extracted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParseSuccess"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Extraction failed - unsupported format, file too large, corrupt file, or scanned PDF with no extractable text.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParseError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "Meta"
+        ],
+        "summary": "Health check",
+        "description": "Returns {status: ok} when the server is running.",
+        "operationId": "health_check",
+        "responses": {
+          "200": {
+            "description": "Server is running.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "ok"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ParseSuccess": {
+        "type": "object",
+        "required": ["success", "text"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "default": true
+          },
+          "text": {
+            "type": "string",
+            "description": "The full extracted plain text from the document."
+          }
+        },
+        "example": {
+          "success": true,
+          "text": "THIS AGREEMENT is entered into as of January 1, 2025..."
+        }
+      },
+      "ParseError": {
+        "type": "object",
+        "required": ["success", "error"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "default": false
+          },
+          "error": {
+            "type": "string",
+            "description": "Human-readable reason the extraction failed."
+          }
+        },
+        "example": {
+          "success": false,
+          "error": "No extractable text found. The PDF may be scanned or image-only."
+        }
+      }
+    }
+  }
+}
