@@ -11,6 +11,8 @@ Endpoints:
   POST /sessions/{id}/events    — append a chat event to a session
   GET  /analytics/summary       — aggregate analytics across all sessions
   DELETE /sessions/{id}         — delete a session
+  POST /chat                    — stream a message to the watsonx Orchestrate agent (SSE)
+  POST /chat/reset              — start a fresh conversation thread for a session
 
 Run:
   python src/api_server.py
@@ -18,19 +20,34 @@ Run:
   uvicorn src.api_server:app --host 0.0.0.0 --port 8000 --reload
 """
 
-import sys, uuid, json
+import sys, uuid, json, socket
+import urllib.request, urllib.error
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Literal, Optional, List
 
+import anyio
 import uvicorn
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 sys.path.insert(0, str(Path(__file__).parent))
 from extractor import MAX_FILE_BYTES, parse_contract_bytes
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# watsonx Orchestrate agent connection (no credentials needed — the embed uses
+# the X-Ibm-Wo-* headers as its identity, exactly like the official widget).
+# ──────────────────────────────────────────────────────────────────────────────
+
+WXO_API_HOST    = "https://api.au-syd.watson-orchestrate.cloud.ibm.com"
+WXO_INSTANCE    = "e20e6693-dff2-428e-89d1-8dc79978a62a"
+WXO_ORCH_ID     = "41bb59990fd34b5081873a229f14864f_e20e6693-dff2-428e-89d1-8dc79978a62a"
+WXO_CRN         = "crn:v1:bluemix:public:watsonx-orchestrate:au-syd:a/41bb59990fd34b5081873a229f14864f:e20e6693-dff2-428e-89d1-8dc79978a62a::"
+WXO_AGENT_ID    = "ed18d61c-a3a7-495b-8e87-21c59f4c19f5"
+WXO_STREAM_MS   = 180000   # stream_timeout used by the official widget
 
 # ──────────────────────────────────────────────────────────────────────────────
 # In-memory store  (replace with a DB in production)
@@ -63,6 +80,15 @@ class ParseSuccess(BaseModel):
 class ParseError(BaseModel):
     success: bool = False
     error: str
+
+class ChatRequest(BaseModel):
+    session_id: str
+    user_id: str
+    message: str
+    title: Optional[str] = None
+
+class ChatResetRequest(BaseModel):
+    session_id: str
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -151,6 +177,7 @@ async def create_session(body: SessionCreate = SessionCreate()):
         "contracts_parsed": 0,
         "cats": {"qa": 0, "contract": 0, "compliance": 0, "research": 0},
         "risk_flags": 0,
+        "thread_id": None,   # watsonx Orchestrate conversation thread for this session
     }
     return _sessions[sid]
 
@@ -210,6 +237,106 @@ async def add_event(session_id: str, event: ChatEvent):
         s["risk_flags"] = s.get("risk_flags", 0) + len(event.risk_flags)
 
     return ev
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Chat — watsonx Orchestrate proxy (no credentials; X-Ibm-Wo-* headers are the
+# identity, exactly like the official embedded widget). Streams SSE back to the
+# frontend 1:1 so the client does the (defensive) event parsing.
+# ──────────────────────────────────────────────────────────────────────────────
+
+def _wxo_headers(user_id: str) -> dict:
+    return {
+        "Content-Type": "application/json",
+        "Accept": "application/json, text/plain, */*",
+        "x-ibm-wo-orchestrate-id": WXO_ORCH_ID,
+        "x-ibm-wo-user-id": user_id,
+        "x-ibm-wo-crn": WXO_CRN,
+        "User-Agent": "LegalAidAdvisor/1.0",
+    }
+
+
+def _wxo_error(e: urllib.error.HTTPError) -> HTTPException:
+    try:
+        payload = json.loads(e.read().decode("utf-8", "replace"))
+        msg = payload.get("message") or payload.get("detail") or payload.get("error") or f"HTTP {e.code}"
+    except Exception:
+        msg = f"watsonx Orchestrate error (HTTP {e.code})"
+    return HTTPException(status_code=e.code, detail=msg)
+
+
+def _create_thread(user_id: str, title: str) -> str:
+    """Create a server-side conversation thread and return its id."""
+    url = f"{WXO_API_HOST}/instances/{WXO_INSTANCE}/threads"
+    body = json.dumps({"title": title or "Legal Aid conversation", "agent_id": WXO_AGENT_ID}).encode("utf-8")
+    req = urllib.request.Request(url, data=body, headers=_wxo_headers(user_id), method="POST")
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            return data.get("thread_id")
+    except urllib.error.HTTPError as e:
+        raise _wxo_error(e)
+
+
+@app.post("/chat", tags=["Chat"])
+async def chat(body: ChatRequest):
+    s = _sessions.get(body.session_id)
+    if s is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if not body.message.strip():
+        raise HTTPException(status_code=422, detail="Message must not be empty")
+
+    # Ensure this dashboard session has a live conversation thread
+    if not s.get("thread_id"):
+        tid = await anyio.to_thread.run_sync(
+            _create_thread, body.user_id, body.title or body.message.strip()[:60]
+        )
+        s["thread_id"] = tid
+        s["updated_at"] = _now()
+
+    url = (f"{WXO_API_HOST}/instances/{WXO_INSTANCE}/orchestrate/runs"
+           f"?stream=true&stream_timeout={WXO_STREAM_MS}&multiple_content=true")
+    payload = {
+        "message": {"role": "user", "content": body.message, "additional_properties": {}},
+        "context": {},
+        "agent_id": WXO_AGENT_ID,
+        "thread_id": s["thread_id"],
+        "environment_id": "",
+    }
+    hdrs = _wxo_headers(body.user_id)
+    hdrs["Accept"] = "text/event-stream"
+    req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=hdrs, method="POST")
+
+    try:
+        upstream = await anyio.to_thread.run_sync(lambda: urllib.request.urlopen(req, timeout=220))
+    except urllib.error.HTTPError as e:
+        raise _wxo_error(e)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"watsonx Orchestrate unreachable: {e}")
+
+    async def event_stream():
+        try:
+            while True:
+                line = await anyio.to_thread.run_sync(upstream.readline)
+                if not line:
+                    break
+                yield line.decode("utf-8", "replace")
+        except (socket.timeout, TimeoutError):
+            pass
+        finally:
+            upstream.close()
+
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
+
+
+@app.post("/chat/reset", tags=["Chat"])
+async def chat_reset(body: ChatResetRequest):
+    s = _sessions.get(body.session_id)
+    if s is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+    s["thread_id"] = None
+    s["updated_at"] = _now()
+    return {"ok": True, "session_id": s["id"]}
 
 
 # ──────────────────────────────────────────────────────────────────────────────

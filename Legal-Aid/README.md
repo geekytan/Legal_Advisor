@@ -1,6 +1,6 @@
-# Legal-Aid (dashboard)
+# Legal-Aid (frontend)
 
-This folder contains the **Legal Aid Advisor** frontend and Node static server.
+This folder contains the **Legal Aid Advisor** frontend (marketing landing page + app dashboard) and Node static server.
 
 **The full project documentation (architecture, setup, API reference, and the watsonx Orchestrate integration) lives in the [repository-root README](../README.md).**
 
@@ -12,7 +12,14 @@ cd legal-aid-tools && python src/api_server.py
 
 # 2) frontend (from this folder)
 node server.js
-# → http://localhost:3000
 ```
+
+| Route         | Page                          |
+| ------------- | ----------------------------- |
+| `/`           | Landing page (`index.html`)   |
+| `/dashboard`  | App dashboard (`dashboard.html`) |
+
+- Landing page: `public/index.html` + `public/css/landing.css` + `public/js/landing.js`
+- App dashboard: `public/dashboard.html` + `public/css/app.css` + `public/js/*`
 
 > `legal-aid-advisor-dashboard.html` is a legacy single-file prototype, superseded by the `public/` SPA. It can be deleted before publishing the repo.

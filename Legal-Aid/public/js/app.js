@@ -57,8 +57,9 @@
     // Programmatic navigation (used by views, e.g. Contracts → Chat)
     document.addEventListener('app:navigate', e => navigate(e.detail));
 
-    // Auto-create a session on load
+    // Auto-create a session on load, then let the chat restore its conversation
     await _initSession();
+    await ChatView.onSessionReady(state);
 
     // Poll backend health every 15s
     _pollHealth();
@@ -86,18 +87,38 @@
   }
 
   /* ── Session init ─────────────────────────────────────────────────────── */
+  // Reuse the last session (so a page refresh resumes the same conversation),
+  // otherwise create a fresh one. The session id is kept in localStorage.
   async function _initSession() {
+    const SESSION_KEY = 'laa_session_id';
+    const saved = localStorage.getItem(SESSION_KEY);
+    if (saved) {
+      const r = await API.getSession(saved);
+      if (r.ok) {
+        state.session.id    = r.data.id;
+        state.session.label = r.data.label;
+        _applySessionLabels(r.data.label);
+        return;
+      }
+      localStorage.removeItem(SESSION_KEY);
+    }
+
     const label = 'Session ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const r = await API.createSession(label);
     if (r.ok) {
       state.session.id    = r.data.id;
       state.session.label = r.data.label;
-      ChatView.updateSessionLabel(r.data.label);
-      const nav = document.getElementById('navSessionLabel');
-      if (nav) nav.textContent = label;
-      const chip = document.getElementById('headerSessionLabel');
-      if (chip) chip.textContent = label;
+      localStorage.setItem(SESSION_KEY, r.data.id);
+      _applySessionLabels(r.data.label);
     }
+  }
+
+  function _applySessionLabels(label) {
+    ChatView.updateSessionLabel(label);
+    const nav = document.getElementById('navSessionLabel');
+    if (nav) nav.textContent = label;
+    const chip = document.getElementById('headerSessionLabel');
+    if (chip) chip.textContent = label;
   }
 
   /* ── Health polling ───────────────────────────────────────────────────── */

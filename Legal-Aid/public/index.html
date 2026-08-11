@@ -3,118 +3,332 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="theme-color" content="#0e1b2f" />
-<title>Legal Aid Advisor</title>
+<meta name="theme-color" content="#0a1424" />
+<meta name="description" content="Legal Aid Advisor — an AI legal counsel that answers questions, reviews contracts and flags risk clauses. Powered by IBM watsonx Orchestrate." />
+<title>Legal Aid Advisor — Counsel at the speed of thought</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230e1b2f'/><text x='50' y='70' font-size='58' text-anchor='middle'>⚖️</text></svg>" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="css/app.css" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/landing.css" />
 </head>
 <body>
 
-<!-- ── App header ── -->
-<header class="app-header">
-  <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-      <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
-    </svg>
-  </button>
-  <div class="brand">
-    <div class="logo-mark">LA</div>
-    <div>
-      <div class="app-title">Legal Aid Advisor</div>
-      <div class="app-sub">IBM watsonx Orchestrate</div>
+<!-- ══════════════ NAV ══════════════ -->
+<header class="lp-nav" id="lpNav">
+  <div class="lp-container lp-nav-inner">
+    <a class="lp-brand" href="#top" aria-label="Legal Aid Advisor — home">
+      <span class="lp-brand-mark">LA</span>
+      <span class="lp-brand-text">
+        <span class="lp-brand-title">Legal Aid Advisor</span>
+        <span class="lp-brand-sub">IBM watsonx Orchestrate</span>
+      </span>
+    </a>
+
+    <nav class="lp-links" id="lpLinks" aria-label="Primary">
+      <a href="#capabilities">Capabilities</a>
+      <a href="#risk-library">Risk Library</a>
+      <a href="#how-it-works">How it works</a>
+      <a href="#testimonial">Testimonial</a>
+    </nav>
+
+    <div class="lp-nav-cta">
+      <a class="lp-btn lp-btn-gold" href="/dashboard">Launch the app</a>
+      <button class="lp-burger" id="lpBurger" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
     </div>
-  </div>
-  <div class="header-right">
-    <span class="session-chip" id="headerSessionLabel">No active session</span>
-    <div class="status-pill" id="statusPill">Connecting…</div>
   </div>
 </header>
 
-<!-- ── Sidebar nav ── -->
-<nav class="app-nav" id="appNav">
-  <div class="nav-section-label">Workspace</div>
+<main id="top">
 
-  <button class="nav-item active" data-view="chat">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-    </svg>
-    Chat
-  </button>
+<!-- ══════════════ HERO ══════════════ -->
+<section class="lp-hero">
+  <div class="lp-grain" aria-hidden="true"></div>
+  <div class="lp-container lp-hero-inner">
 
-  <button class="nav-item" data-view="analytics">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-    </svg>
-    Analytics
-  </button>
+    <div class="lp-hero-copy">
+      <p class="lp-eyebrow reveal">⚖️ &nbsp;AI Legal Counsel · Powered by IBM watsonx Orchestrate</p>
 
-  <button class="nav-item" data-view="contracts">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-      <polyline points="14 2 14 8 20 8"/>
-    </svg>
-    Contract Review
-  </button>
+      <h1 class="lp-hero-title reveal">
+        Counsel at the speed of <em>thought.</em>
+      </h1>
 
-  <button class="nav-item" data-view="sessions">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-      <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
-      <line x1="3" y1="10" x2="21" y2="10"/>
-    </svg>
-    Session History
-  </button>
+      <p class="lp-hero-sub reveal">
+        An AI legal advisor that answers your questions, reviews contracts and
+        flags risky clauses — grounded, immediate and available around the clock.
+      </p>
 
-  <div class="nav-divider"></div>
-  <div class="nav-section-label">System</div>
+      <div class="lp-hero-actions reveal">
+        <a class="lp-btn lp-btn-gold lp-btn-lg" href="/dashboard">Start advising
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+        <a class="lp-btn lp-btn-ghost lp-btn-lg" href="#how-it-works">See how it works</a>
+      </div>
 
-  <button class="nav-item" data-view="settings">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="12" cy="12" r="3"/>
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-    </svg>
-    Settings
-  </button>
+      <p class="lp-hero-note reveal">No sign-up required &nbsp;·&nbsp; Works with your PDFs &amp; DOCX &nbsp;·&nbsp; Secure sessions</p>
+    </div>
 
-  <div class="nav-footer" id="navSessionLabel">No session started yet</div>
-</nav>
+    <!-- ── Hero mockup ── -->
+    <div class="lp-hero-stage reveal">
+      <div class="lp-mock" role="img" aria-label="Preview of the advisor chat answering a legal question">
 
-<!-- ── Main content ── -->
-<main class="app-main" id="appMain">
+        <div class="lp-mock-bar">
+          <span class="lp-mock-dots"><i></i><i></i><i></i></span>
+          <span class="lp-mock-title">legal-aid-advisor · session</span>
+          <span class="lp-mock-live">● LIVE</span>
+        </div>
 
-  <!-- ── VIEW: Chat ── -->
-  <div class="view active" id="view-chat"></div>
+        <div class="lp-mock-body">
+          <div class="lp-msg lp-msg-agent">
+            <span class="lp-msg-avatar">LA</span>
+            <div class="lp-msg-bubble">
+              <span class="lp-msg-role">Legal Aid Advisor</span>
+              <span class="lp-msg-text">Good afternoon. How can I help you today?</span>
+            </div>
+          </div>
 
-  <!-- ── VIEW: Analytics ── -->
-  <div class="view" id="view-analytics"></div>
+          <div class="lp-msg lp-msg-user">
+            <div class="lp-msg-bubble lp-msg-q" id="mockQ">Does my landlord have to return my security deposit?</div>
+          </div>
 
-  <!-- ── VIEW: Contracts ── -->
-  <div class="view" id="view-contracts"></div>
+          <div class="lp-msg lp-msg-agent">
+            <span class="lp-msg-avatar">LA</span>
+            <div class="lp-msg-bubble">
+              <span class="lp-msg-role">Legal Aid Advisor</span>
+              <span class="lp-typing" id="mockTyping"><i></i><i></i><i></i></span>
+              <span class="lp-msg-text" id="mockA">Your deposit must be returned within 21 days of lease end — with an itemised statement of any deductions.</span>
+            </div>
+          </div>
+        </div>
 
-  <!-- ── VIEW: Sessions ── -->
-  <div class="view" id="view-sessions"></div>
+        <div class="lp-mock-input">
+          <span class="lp-mock-ph">Ask about tenant rights, contracts, compliance…</span>
+          <span class="lp-mock-send">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </span>
+        </div>
+      </div>
 
-  <!-- ── VIEW: Settings ── -->
-  <div class="view" id="view-settings"></div>
+      <!-- Floating badges -->
+      <div class="lp-float lp-float-risk" aria-hidden="true">
+        <span class="lp-float-dot warn"></span>
+        <div><b>Risk flag</b><span>Auto-renewal clause detected</span></div>
+      </div>
+      <div class="lp-float lp-float-clear" aria-hidden="true">
+        <span class="lp-float-dot ok"></span>
+        <div><b>No unlimited liability</b><span>Liability capped at fees paid</span></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════ STATS ══════════════ -->
+<section class="lp-stats" aria-label="Key numbers">
+  <div class="lp-container lp-stats-grid">
+    <div class="lp-stat reveal">
+      <span class="lp-stat-num"><span data-count="12400">0</span>+</span>
+      <span class="lp-stat-lbl">Questions answered</span>
+    </div>
+    <div class="lp-stat reveal">
+      <span class="lp-stat-num"><span data-count="9">0</span></span>
+      <span class="lp-stat-lbl">Risk clauses flagged</span>
+    </div>
+    <div class="lp-stat reveal">
+      <span class="lp-stat-num"><span data-count="4">0</span></span>
+      <span class="lp-stat-lbl">Practice areas covered</span>
+    </div>
+    <div class="lp-stat reveal">
+      <span class="lp-stat-num">24/7</span>
+      <span class="lp-stat-lbl">Always available</span>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ CAPABILITIES ══════════════ -->
+<section class="lp-section" id="capabilities">
+  <div class="lp-container">
+    <div class="lp-sec-head reveal">
+      <p class="lp-eyebrow">01 — Capabilities</p>
+      <h2>Everything your practice needs, <em>nothing it doesn't.</em></h2>
+      <p class="lp-sec-sub">Four tools, one calm workspace. Ask, upload, review and learn — without leaving the chamber.</p>
+    </div>
+
+    <div class="lp-features">
+      <article class="lp-card reveal">
+        <span class="lp-card-ico chat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </span>
+        <h3>AI Legal Chat</h3>
+        <p>Ask anything — tenant rights, employment terms, compliance questions. Answers arrive in plain language, ready to act on.</p>
+        <span class="lp-card-tag">Q&A</span>
+      </article>
+
+      <article class="lp-card reveal">
+        <span class="lp-card-ico doc">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </span>
+        <h3>Contract Review</h3>
+        <p>Drop in a PDF or DOCX and the advisor extracts the text, reads it end to end, and tells you what matters.</p>
+        <span class="lp-card-tag">Contracts</span>
+      </article>
+
+      <article class="lp-card reveal">
+        <span class="lp-card-ico shield">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="0.5"/></svg>
+        </span>
+        <h3>Risk Detection</h3>
+        <p>Nine common clauses — auto-renewal, indemnification, unlimited liability — flagged the moment they appear.</p>
+        <span class="lp-card-tag">Compliance</span>
+      </article>
+
+      <article class="lp-card reveal">
+        <span class="lp-card-ico chart">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </span>
+        <h3>Live Analytics</h3>
+        <p>Watch every session in real time — questions by category, risk flags and a full history you can return to.</p>
+        <span class="lp-card-tag">Research</span>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ RISK LIBRARY MARQUEE ══════════════ -->
+<section class="lp-risks" id="risk-library">
+  <div class="lp-grain" aria-hidden="true"></div>
+  <div class="lp-risks-head reveal">
+    <p class="lp-eyebrow">02 — The Risk Library</p>
+    <h2>Clauses worth a <em>second look.</em></h2>
+  </div>
+
+  <div class="lp-marquee reveal" aria-hidden="true">
+    <div class="lp-marquee-track">
+      <span class="lp-risk-chip"><i></i>Auto-Renewal</span>
+      <span class="lp-risk-chip"><i></i>Indemnification</span>
+      <span class="lp-risk-chip"><i></i>Unlimited Liability</span>
+      <span class="lp-risk-chip"><i></i>Sole Discretion</span>
+      <span class="lp-risk-chip"><i></i>Liquidated Damages</span>
+      <span class="lp-risk-chip"><i></i>Perpetual License</span>
+      <span class="lp-risk-chip"><i></i>Non-Compete</span>
+      <span class="lp-risk-chip"><i></i>Jury Waiver</span>
+      <span class="lp-risk-chip"><i></i>Mandatory Arbitration</span>
+      <span class="lp-risk-chip"><i></i>Auto-Renewal</span>
+      <span class="lp-risk-chip"><i></i>Indemnification</span>
+      <span class="lp-risk-chip"><i></i>Unlimited Liability</span>
+      <span class="lp-risk-chip"><i></i>Sole Discretion</span>
+      <span class="lp-risk-chip"><i></i>Liquidated Damages</span>
+      <span class="lp-risk-chip"><i></i>Perpetual License</span>
+      <span class="lp-risk-chip"><i></i>Non-Compete</span>
+      <span class="lp-risk-chip"><i></i>Jury Waiver</span>
+      <span class="lp-risk-chip"><i></i>Mandatory Arbitration</span>
+    </div>
+  </div>
+
+  <p class="lp-risks-note reveal">Detected the moment a contract is uploaded — each one with a plain-language explanation of why it deserves negotiation.</p>
+</section>
+
+<!-- ══════════════ HOW IT WORKS ══════════════ -->
+<section class="lp-section lp-section-parch" id="how-it-works">
+  <div class="lp-container">
+    <div class="lp-sec-head reveal">
+      <p class="lp-eyebrow">03 — How it works</p>
+      <h2>From question to confidence in <em>three steps.</em></h2>
+    </div>
+
+    <div class="lp-steps">
+      <div class="lp-step reveal">
+        <span class="lp-step-num">01</span>
+        <h3>Ask the advisor</h3>
+        <p>Type your question in plain language. The advisor draws on legal knowledge tuned for everyday counsel.</p>
+      </div>
+      <div class="lp-step reveal">
+        <span class="lp-step-num">02</span>
+        <h3>Upload a contract</h3>
+        <p>Hand over a PDF or DOCX. The engine extracts the text and hunts for the clauses that usually hide trouble.</p>
+      </div>
+      <div class="lp-step reveal">
+        <span class="lp-step-num">03</span>
+        <h3>Negotiate with clarity</h3>
+        <p>Get a focused evaluation — what's concerning, what's one-sided, and exactly what to push back on.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ TESTIMONIAL ══════════════ -->
+<section class="lp-quote" id="testimonial">
+  <div class="lp-grain" aria-hidden="true"></div>
+  <div class="lp-container lp-quote-inner reveal">
+    <span class="lp-quote-mark" aria-hidden="true">“</span>
+    <blockquote>
+      It reads a lease the way I would — slowly, suspiciously, and in the right order.
+      Our intake time dropped by hours every week.
+    </blockquote>
+    <div class="lp-quote-by">
+      <span class="lp-quote-avatar">EV</span>
+      <div>
+        <b>Eleanor Vance</b>
+        <span>General Counsel, Meridian Housing</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ CTA ══════════════ -->
+<section class="lp-cta">
+  <div class="lp-grain" aria-hidden="true"></div>
+  <div class="lp-container lp-cta-inner reveal">
+    <p class="lp-eyebrow">Begin today</p>
+    <h2>Ready to counsel with <em>confidence?</em></h2>
+    <p class="lp-cta-sub">Open the workspace and ask your first question — the advisor is already waiting.</p>
+    <a class="lp-btn lp-btn-gold lp-btn-lg" href="/dashboard">Launch Legal Aid Advisor
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </a>
+  </div>
+</section>
 
 </main>
 
-<!-- ── Toast container ── -->
-<div id="toast-container"></div>
+<!-- ══════════════ FOOTER ══════════════ -->
+<footer class="lp-footer">
+  <div class="lp-container lp-footer-inner">
+    <div class="lp-footer-brand">
+      <a class="lp-brand" href="#top">
+        <span class="lp-brand-mark">LA</span>
+        <span class="lp-brand-text">
+          <span class="lp-brand-title">Legal Aid Advisor</span>
+          <span class="lp-brand-sub">IBM watsonx Orchestrate</span>
+        </span>
+      </a>
+      <p>An AI legal counsel for questions, contracts and compliance — built on IBM watsonx Orchestrate.</p>
+    </div>
 
-<!-- ── Scripts ── -->
-<script src="js/api.js"></script>
-<script src="js/utils.js"></script>
-<script src="js/wxochat.js"></script>
-<script src="js/views/chat.js"></script>
-<script src="js/views/analytics.js"></script>
-<script src="js/views/contracts.js"></script>
-<script src="js/views/sessions.js"></script>
-<script src="js/views/settings.js"></script>
-<script src="js/app.js"></script>
+    <div class="lp-footer-col">
+      <h4>Product</h4>
+      <a href="#capabilities">Capabilities</a>
+      <a href="#risk-library">Risk Library</a>
+      <a href="#how-it-works">How it works</a>
+      <a href="/dashboard">Launch the app</a>
+    </div>
 
+    <div class="lp-footer-col">
+      <h4>Workspace</h4>
+      <a href="/dashboard">Chat</a>
+      <a href="/dashboard">Contract Review</a>
+      <a href="/dashboard">Analytics</a>
+      <a href="/dashboard">Session History</a>
+    </div>
+  </div>
+
+  <div class="lp-container lp-footer-bottom">
+    <p class="lp-disclaimer">Legal Aid Advisor provides general legal information and document assistance — not legal advice. For matters of consequence, consult a qualified attorney in your jurisdiction.</p>
+    <p class="lp-copy">© 2026 Legal Aid Advisor · Built on IBM watsonx Orchestrate</p>
+  </div>
+</footer>
+
+<script src="js/landing.js"></script>
 </body>
 </html>

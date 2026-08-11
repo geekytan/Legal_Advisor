@@ -105,7 +105,10 @@ const SessionsView = (() => {
     const r = await API.deleteSession(id);
     if (!r.ok) { toast('Delete failed: ' + r.error, 'error'); return; }
     toast('Session deleted', 'success');
-    if (state?.session?.id === id) { state.session.id = null; }
+    if (state?.session?.id === id) {
+      state.session.id = null;
+      localStorage.removeItem('laa_session_id');
+    }
     _loadSessions(state);
     document.getElementById('sessionDetailWrap').style.display = 'none';
   }
@@ -116,6 +119,7 @@ const SessionsView = (() => {
     if (!r.ok) { toast('Failed to create session: ' + r.error, 'error'); return; }
     state.session.id = r.data.id;
     state.session.label = r.data.label;
+    localStorage.setItem('laa_session_id', r.data.id);
     toast('Session created: ' + r.data.label, 'success');
     ChatView.updateSessionLabel(r.data.label);
     document.getElementById('navSessionLabel').textContent = r.data.label;

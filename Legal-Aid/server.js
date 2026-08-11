@@ -1,8 +1,12 @@
 /**
- * server.js — Node.js gateway for the Legal Aid Advisor Dashboard.
+ * server.js — Node.js gateway for Legal Aid Advisor.
  *
  * Serves the static frontend (public/) on http://localhost:3000
  * The Python FastAPI backend runs separately on port 8000.
+ *
+ * Routes:
+ *   /           → landing page (public/index.html)
+ *   /dashboard  → app dashboard (public/dashboard.html)
  *
  * Run:  node server.js
  */
@@ -28,8 +32,14 @@ const server = http.createServer((req, res) => {
   // Normalize URL — strip query string
   let urlPath = req.url.split('?')[0];
 
-  // SPA: any path without extension → serve index.html
-  if (!path.extname(urlPath)) urlPath = '/index.html';
+  // Route: landing at /, dashboard at /dashboard, everything else → index.html
+  if (urlPath === '/' || urlPath === '') {
+    urlPath = '/index.html';
+  } else if (urlPath === '/dashboard') {
+    urlPath = '/dashboard.html';
+  } else if (!path.extname(urlPath)) {
+    urlPath = '/index.html';
+  }
 
   const filePath = path.join(PUBLIC, urlPath);
 

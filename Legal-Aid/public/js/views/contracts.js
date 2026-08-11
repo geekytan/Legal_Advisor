@@ -130,18 +130,18 @@ ${risks.length ? `
 
   /* Build the prompt we hand to the advisor chatbot. */
   function _evalPrompt(fileName, text) {
-    return `Please act as a legal advisor and review the contract below (file: "${esc(fileName)}").
+    return `Please act as a legal advisor and review the contract below (file: "${fileName}").
 Evaluate its overall risk level, list the most important concerns, flag anything unusual or one-sided, and suggest what to negotiate. Be specific and concise.
 
 CONTRACT TEXT:
 ${text}`;
   }
 
-  /* Send the extracted text to the embedded chatbot and switch to the Chat view. */
+  /* Send the extracted text to the advisor chat and switch to the Chat view. */
   async function _evaluateWithAdvisor(text, fileName) {
     let body = text;
-    if (body.length > WxoChat.MAX_CHAT_CHARS) {
-      body = body.slice(0, WxoChat.MAX_CHAT_CHARS)
+    if (body.length > ChatView.MAX_CHAT_CHARS) {
+      body = body.slice(0, ChatView.MAX_CHAT_CHARS)
         + `\n\n[… excerpt — full document is ${text.length.toLocaleString()} characters]`;
     }
     const prompt = _evalPrompt(fileName, body);
@@ -152,21 +152,10 @@ ${text}`;
     // Switch to the Chat view first so the user watches the evaluation happen.
     document.dispatchEvent(new CustomEvent('app:navigate', { detail: 'chat' }));
 
-    try {
-      await WxoChat.sendMessage(prompt);
-      toast(`Sent ${fileName} to the advisor — evaluating now.`);
-    } catch (e) {
-      // Widget unreachable (offline / upgraded markup): give the user the prompt
-      // so they can paste it into the chat manually.
-      try {
-        await navigator.clipboard.writeText(prompt);
-        toast(`Chat unreachable (${e.message}) — prompt copied to clipboard, paste it in the Chat tab.`, 'error', 5000);
-      } catch (_) {
-        toast(`Chat unreachable: ${e.message}`, 'error');
-      }
-    } finally {
-      if (btn) { btn.disabled = false; btn.textContent = '⚖️ Evaluate with Advisor'; }
-    }
+    ChatView.externalSend(prompt);
+    toast(`Sent ${fileName} to the advisor — evaluating now.`);
+
+    if (btn) { btn.disabled = false; btn.textContent = '⚖️ Evaluate with Advisor'; }
   }
 
   const RISK_PATTERNS = [
