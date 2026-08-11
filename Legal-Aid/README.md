@@ -22,4 +22,4 @@ node server.js
 - Landing page: `public/index.html` + `public/css/landing.css` + `public/js/landing.js`
 - App dashboard: `public/dashboard.html` + `public/css/app.css` + `public/js/*`
 
-> `legal-aid-advisor-dashboard.html` is a legacy single-file prototype, superseded by the `public/` SPA. It can be deleted before publishing the repo.
+> The chat is a custom UI backed by the FastAPI `/chat` SSE proxy — the embedded watsonx Orchestrate widget is no longer used, and the agent's script is unchanged.

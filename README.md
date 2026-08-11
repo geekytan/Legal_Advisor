@@ -1,6 +1,6 @@
 # ⚖️ Legal Aid Advisor
 
-An AI-powered legal assistant dashboard: upload a contract, get instant risk-clause detection, then hand the full document to an **IBM watsonx Orchestrate** chatbot (built from an orchestration of **3 agents working together**) for a deep evaluation — all in one place.
+An AI-powered legal assistant: a marketing landing page, an app dashboard with a **custom chat UI** that streams replies from an **IBM watsonx Orchestrate** agent (built from an orchestration of **3 agents working together**), and contract review with instant risk-clause detection — all in one place.
 
 > ⚠️ **Disclaimer:** This project is a demonstration tool. Output from the chatbot is general information, **not legal advice**. Always consult a licensed attorney for real decisions.
 
@@ -10,10 +10,12 @@ An AI-powered legal assistant dashboard: upload a contract, get instant risk-cla
 
 | | |
 |---|---|
-| 💬 **AI Legal Chatbot** | Embedded IBM watsonx Orchestrate chat — an orchestration that combines **three specialized agents** (triage, contract analysis, compliance) so one conversation routes each question to the right expertise |
+| 🏠 **Landing page** | Full marketing landing page at `/` — "Justice Chamber" theme, animated chat mockup, risk-library marquee, suggestion chips |
+| 💬 **AI Legal Chatbot** | Custom chat UI (no IBM widget) that streams token-by-token from the watsonx Orchestrate agent — an orchestration that combines **three specialized agents** (triage, contract analysis, compliance) so one conversation routes each question to the right expertise |
+| 🔁 **Conversation continuity** | Threads are created server-side and stored per dashboard session; refreshing the page resumes the same conversation |
 | 📄 **Contract Review** | Drag-and-drop a PDF or DOCX → text is extracted server-side and scanned for **9 risk-clause patterns** (auto-renewal, indemnification, unlimited liability, …) |
-| ⚖️ **Evaluate with Advisor** | One click sends the *whole extracted contract* into the chatbot, which reviews risk, flags one-sided terms, and suggests negotiation points — right in the chat where you can follow up |
-| 📊 **Live Analytics** | A sidebar tracks every chat message in real time (questions, categories, risk flags) via a DOM observer on the chat widget; a global Analytics view aggregates everything across sessions |
+| ⚖️ **Evaluate with Advisor** | One click sends the *whole extracted contract* into the chat, which reviews risk, flags one-sided terms, and suggests negotiation points — right in the chat where you can follow up |
+| 📊 **Live Analytics** | A sidebar tracks every chat message in real time (questions, categories, risk flags); a global Analytics view aggregates everything across sessions |
 | 🗂️ **Session History** | Every session (messages + contract uploads) is stored and browsable; full conversation logs with categories |
 | 🔌 **MCP Server for IBM Bob** | The same text-extraction core is exposed as a Model Context Protocol tool so the IBM Bob coding assistant can parse contracts directly |
 
@@ -22,50 +24,47 @@ An AI-powered legal assistant dashboard: upload a contract, get instant risk-cla
 ## 🏗️ Architecture
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│  Browser — http://localhost:3000                                  │
-│  ┌──────────┐  ┌────────────┐  ┌──────────────┐  ┌───────────┐  │
-│  │  Chat    │  │ Analytics  │  │ Contract     │  │ Sessions /│  │
-│  │ (WxO     │  │ (global    │  │ Review       │  │ Settings  │  │
-│  │  embed)  │  │  KPIs)     │  │ + Evaluate   │  │           │  │
-│  └────┬─────┘  └─────┬──────┘  └──────┬───────┘  └─────┬─────┘  │
-└───────┼──────────────┼────────────────┼─────────────────┼───────┘
-        │              │                │                 │
-        ▼              ▼                ▼                 ▼
-┌──────────────────────────────────────────────────────────────────┐
-│  Node.js  server.js  :3000   (static SPA server — vanilla JS)     │
-│  public/js/wxochat.js  programmatically drives the chat widget    │
-└───────────────────────────────┬──────────────────────────────────┘
-                                │  REST API (localhost:8000)
-                                ▼
-┌──────────────────────────────────────────────────────────────────┐
-│  Python  FastAPI  legal-aid-tools/src/api_server.py  :8000       │
-│  POST /parse-contract  ·  /sessions CRUD  ·  /analytics/summary  │
-│  ·  /health  (sessions stored in memory)                         │
-└──────────────┬───────────────────────────────────────────────────┘
-               │
-               ▼  PDF/DOCX extraction
-┌──────────────────────────────────────────────────────────────────┐
-│  legal-aid-tools/src/extractor.py                                │
-│  pypdf → pdfplumber (PDF)  ·  python-docx (DOCX)  ·  max 10 MB   │
-└──────────────┬───────────────────────────────────────────────────┘
-               │
-               ▼  chat responses
-┌──────────────────────────────────────────────────────────────────┐
-│  IBM watsonx Orchestrate (au-syd)                                │
-│  Embed flow: wxoLoader.js → instance API → 3-agent orchestration │
-└──────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────┐
+│  Browser — http://localhost:3000                                            │
+│  ┌──────────────┐ ┌─────────────┐ ┌────────────────┐ ┌──────────────────┐  │
+│  │ Landing page │ │ Dashboard   │ │ Chat view      │ │ Analytics /      │  │
+│  │ (marketing,  │ │ (SPA at     │ │ (custom UI +   │ │ Sessions /       │  │
+│  │  at /)       │ │ /dashboard) │ │  SSE streaming)│ │ Settings         │  │
+│  └──────────────┘ └──────┬──────┘ └────────┬───────┘ └───────┬──────────┘  │
+└──────────────────────────┼─────────────────┼──────────────────┼────────────┘
+                           └─────────────────┼──────────────────┘
+                                             ▼  REST API (localhost:8000)
+┌────────────────────────────────────────────────────────────────────────────┐
+│  Node.js  server.js  :3000   (static server — vanilla JS, zero deps)       │
+└──────────────────────────────────┬─────────────────────────────────────────┘
+                                   │
+                                   ▼
+┌────────────────────────────────────────────────────────────────────────────┐
+│  Python  FastAPI  legal-aid-tools/src/api_server.py  :8000                 │
+│  POST /chat (SSE relay) · /chat/reset · /parse-contract                    │
+│  · /sessions CRUD · /analytics/summary · /health  (in-memory store)        │
+└──────────────┬────────────────────────────────────┬────────────────────────┘
+               │                                    │
+               ▼ PDF/DOCX extraction                ▼ chat SSE
+┌──────────────────────────────┐   ┌─────────────────────────────────────────┐
+│  legal-aid-tools/src/        │   │  IBM watsonx Orchestrate (au-syd)       │
+│  extractor.py                │   │  /instances/{id}/orchestrate/runs       │
+│  pypdf → pdfplumber → docx   │   │  → stream=true (SSE), thread per session│
+└──────────────────────────────┘   └─────────────────────────────────────────┘
 ```
 
 ---
 
 ## 🧠 How the chatbot works — watsonx Orchestrate & the 3 agents
 
-The chat panel embeds the official **watsonx Orchestrate** widget (no iframe — it renders directly into the page DOM, which is what lets the app observe and even *drive* it programmatically). The widget is configured in [`public/js/views/chat.js`](Legal-Aid/public/js/views/chat.js) with:
+The chat is a **fully custom UI** — the official watsonx Orchestrate widget is not used. The dashboard's Chat view is our own dark "Justice Chamber" interface that streams replies token-by-token. The agent itself — its prompts, tools, and orchestration — is untouched and still runs inside watsonx Orchestrate.
 
-- an **orchestration ID** (the workspace instance),
-- an **agent ID** (the entry agent), and
-- the **CRN** + regional host URL.
+**How it connects:**
+
+1. `views/chat.js` sends the user's message via `POST /chat` to the FastAPI backend.
+2. The backend creates (or reuses) a **server-side conversation thread** (`POST /instances/{id}/threads`) per dashboard session, then calls `/instances/{id}/orchestrate/runs?stream=true` with the same `X-Ibm-Wo-*` headers the official embed used.
+3. The agent's SSE stream (`run.started`, `message.delta`, …) is relayed back 1:1 and rendered by our UI with markdown-lite formatting and a typing indicator.
+4. **No credentials anywhere** — the `X-Ibm-Wo-Crn` / `X-Ibm-Wo-Orchestrate-Id` / `X-Ibm-Wo-User-Id` headers are the identity, exactly as with the old embed. Nothing secret lives in the frontend or backend.
 
 The orchestration itself is built in IBM Cloud and combines **three agents working together**. Update this table with your actual agent names/roles:
 
@@ -75,13 +74,7 @@ The orchestration itself is built in IBM Cloud and combines **three agents worki
 | 2 | **Contract Analyst** | Reviews clauses, spots risks, extracts obligations |
 | 3 | **Compliance Advisor** | Checks regulations (tenant rights, data protection, …) |
 
-*Edit this section to match your exact orchestration in IBM Cloud — the dashboard works regardless of the agent split, because it talks to the orchestration as one entry point.*
-
-**How the frontend integrates:**
-
-- **Observing** — `views/chat.js` attaches a `MutationObserver` to the widget root and watches for new message nodes (`userRequest` / `agentResponse`), feeding the Live Analytics sidebar and session log in real time.
-- **Driving** — `wxochat.js` can *send* a message on the user's behalf: it opens the launcher, finds the TipTap editor input, injects text as block elements, and clicks send. This powers **Evaluate with Advisor** (it types the contract + evaluation prompt into the chat and lets you keep the conversation going).
-- **Fallback** — if the widget is unreachable (offline, widget upgrade), the evaluation prompt is copied to the clipboard so nothing is lost.
+*Edit this section to match your exact orchestration in IBM Cloud — the app works regardless of the agent split, because it talks to the orchestration as one entry point.*
 
 ---
 
@@ -90,10 +83,11 @@ The orchestration itself is built in IBM Cloud and combines **three agents worki
 | Layer | Technology |
 |---|---|
 | Frontend | Vanilla JS SPA (no framework), hand-rolled router, CSS design tokens |
+| Type | Playfair Display (display serif) · Inter (UI) · IBM Plex Mono (labels) |
 | Frontend server | Node.js `http` module (zero dependencies) |
 | Backend | Python 3 · FastAPI · Uvicorn · Pydantic |
 | Extraction | pypdf, pdfplumber, python-docx |
-| AI | IBM watsonx Orchestrate (embedded chat + 3-agent orchestration) |
+| AI | IBM watsonx Orchestrate (chat API via backend proxy + 3-agent orchestration) |
 | Extras | MCP server for IBM Bob (Model Context Protocol) |
 
 ---
@@ -104,7 +98,7 @@ The orchestration itself is built in IBM Cloud and combines **three agents worki
 
 - **Node.js** (any modern LTS)
 - **Python 3.10+** with `pip`
-- An internet connection (the chat widget loads from IBM Cloud)
+- An internet connection (chat requests go to IBM Cloud)
 
 ### 1 — Start the Python backend
 
@@ -127,13 +121,14 @@ node server.js
 # → http://localhost:3000
 ```
 
-### 3 — Open the dashboard
+### 3 — Open the app
 
-```
-http://localhost:3000
-```
+| Route | Page |
+|---|---|
+| `http://localhost:3000/` | Landing page |
+| `http://localhost:3000/dashboard` | App dashboard (chat, analytics, contract review, sessions) |
 
-The header shows **Connected** when the backend is reachable (it polls `/health` every 15 s).
+The dashboard header shows **Connected** when the backend is reachable (it polls `/health` every 15 s).
 
 ---
 
@@ -143,19 +138,22 @@ The header shows **Connected** when the backend is reachable (it polls `/health`
 attorney/                          ← repository root
 ├── README.md
 ├── Sample_Service_Agreement.pdf   ← sample contract for testing
-├── Legal-Aid/                     ← dashboard (frontend + Node server)
-│   ├── server.js                  ← static file server (port 3000)
-│   ├── legal-aid-advisor-dashboard.html ← legacy single-file prototype (superseded)
+├── Legal-Aid/                     ← frontend + Node server
+│   ├── server.js                  ← static file server (port 3000, routes / and /dashboard)
+│   ├── README.md                  ← frontend quick-start
 │   └── public/
-│       ├── index.html             ← SPA shell
-│       ├── css/app.css            ← design system + layout
+│       ├── index.html             ← marketing landing page
+│       ├── dashboard.html         ← SPA shell (chat, analytics, contracts, sessions)
+│       ├── css/
+│       │   ├── app.css            ← design system + dashboard layout
+│       │   └── landing.css        ← landing page styles
 │       └── js/
-│           ├── api.js             ← fetch wrapper for the FastAPI backend
+│           ├── api.js             ← fetch wrapper for FastAPI + chat streaming + anonymous user id
 │           ├── utils.js           ← shared helpers (toast, charts, classify)
-│           ├── wxochat.js         ← programmatic driver for the WxO chat widget
-│           ├── app.js             ← SPA router + bootstrap
+│           ├── landing.js         ← landing page interactions (reveals, counters, mockup)
+│           ├── app.js             ← SPA router + bootstrap (session persistence)
 │           └── views/
-│               ├── chat.js        ← WxO embed + live analytics sidebar
+│               ├── chat.js        ← custom chat UI + SSE streaming + analytics sidebar
 │               ├── analytics.js   ← global KPI dashboard
 │               ├── contracts.js   ← upload + risk detection + Evaluate with Advisor
 │               ├── sessions.js    ← session history + detail
@@ -164,7 +162,7 @@ attorney/                          ← repository root
     ├── requirements.txt
     ├── src/
     │   ├── extractor.py           ← PDF/DOCX extraction core (shared)
-    │   ├── api_server.py          ← FastAPI backend (sessions, analytics, parsing)
+    │   ├── api_server.py          ← FastAPI backend (chat proxy, sessions, analytics, parsing)
     │   ├── http_server.py         ← minimal single-endpoint parser
     │   └── server.py              ← MCP server for IBM Bob
 ```
@@ -177,6 +175,8 @@ All endpoints are served by the FastAPI backend on port 8000 (interactive docs a
 
 | Method | Endpoint | Description |
 |---|---|---|
+| `POST` | `/chat` | Send a message to the watsonx Orchestrate agent; returns an SSE stream of `run.started` / `message.delta` events |
+| `POST` | `/chat/reset` | Rotate to a fresh conversation thread for a session |
 | `POST` | `/parse-contract` | Upload a PDF/DOCX (max 10 MB) → `{ success, text }` |
 | `POST` | `/sessions` | Create a session |
 | `GET` | `/sessions` | List all sessions (summaries) |
@@ -210,14 +210,14 @@ The Contract Review panel scans extracted text for these patterns (regex-based, 
 
 1. Upload a contract → text is extracted and risk clauses are flagged.
 2. Click **⚖️ Evaluate with Advisor**.
-3. The app switches to the Chat view and programmatically sends the document (first 8,000 characters) with a review prompt to the watsonx Orchestrate chatbot.
+3. The app switches to the Chat view and sends the document (first 8,000 characters) with a review prompt through the custom chat.
 4. The advisor replies in the chat — ask follow-ups, and everything is recorded to the session and analytics.
 
 ---
 
 ## 🔒 Security Notes
 
-- **No secrets in the repo.** The WxO orchestration ID / agent ID / CRN in `chat.js` are *embed identifiers* — they are client-side by design (any site visitor can read them) and are needed for the public embed to work. If you add credentials later (API keys, IAM tokens), **keep them out of the repo** — use environment variables.
+- **No secrets in the repo.** The WxO orchestration ID / agent ID / CRN live in `legal-aid-tools/src/api_server.py` (`WXO_*` constants) and are *embed identifiers*, not credentials — the API authenticates with the `X-Ibm-Wo-*` headers, exactly like the official embed. If you add credentials later (API keys, IAM tokens), **keep them out of the repo** — use environment variables.
 - **Sessions are in-memory** in the Python process and reset on restart. For persistence, swap the `_sessions` dict for SQLite/PostgreSQL.
 - **No OCR.** Scanned/image-only PDFs return a clear error.
 - CORS is wide open (`allow_origins=["*"]`) — fine for local dev, restrict it before any public deployment.
@@ -230,7 +230,8 @@ The Contract Review panel scans extracted text for these patterns (regex-based, 
 - [ ] Server-side risk detection (currently client-side regex)
 - [ ] OCR support for scanned PDFs
 - [ ] Configurable evaluation prompt (focus areas, jurisdiction)
-- [ ] Stream the advisor evaluation into the Contract Review view (via the orchestrate REST API)
+- [ ] Render markdown tables in chat replies (markdown-lite currently shows pipes)
+- [ ] Agent-memory button in the chat header (view / clear agent memory)
 - [ ] Docker compose for one-command startup
 - [ ] Tests (frontend + backend)
 
