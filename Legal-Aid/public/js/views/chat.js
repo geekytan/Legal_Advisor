@@ -37,7 +37,6 @@ const ChatView = (() => {
 
   let _state = null;
   let _msgs = [];          // [{ role: 'user'|'agent', text }]
-  let _riskCount = 0;
   let _streaming = false;
 
   /* ── Render ──────────────────────────────────────────────────────────── */
@@ -85,44 +84,7 @@ const ChatView = (() => {
     </div>
     <p class="cc-hint">Legal Aid Advisor provides general legal information — not legal advice.</p>
   </div>
-</div>
-
-<aside class="chat-sidebar cc-sidebar">
-  <div class="panel-header">
-    <h2>Live Analytics</h2>
-    <span class="live-dot">Live</span>
-  </div>
-  <div class="sidebar-body">
-    <div class="mini-stat-row">
-      <div class="mini-stat"><div class="lbl">Questions</div><div class="val" id="cs-questions">0</div></div>
-      <div class="mini-stat"><div class="lbl">Risk Flags</div><div class="val" id="cs-risks">0</div></div>
-    </div>
-    <div class="section-card">
-      <div class="section-title">Categories</div>
-      <div class="section-body">
-        <div class="cat-list">
-          ${['qa','contract','compliance','research'].map(k=>`
-          <div>
-            <div class="cat-label-row"><span class="cat-name" style="color:${catColor(k)}">${catLabel(k)}</span><span class="cat-count" id="cs-cnt-${k}">0</span></div>
-            <div class="cat-bar-bg"><div class="cat-bar-fill" id="cs-bar-${k}" style="width:0%;background:${catColor(k)}"></div></div>
-          </div>`).join('')}
-        </div>
-      </div>
-    </div>
-    <div class="section-card">
-      <div class="section-title">Session Log</div>
-      <div class="section-body" style="padding:2px 14px">
-        <div class="log-list" id="cs-log"><p class="panel-empty">No interactions yet — ask the advisor a question.</p></div>
-      </div>
-    </div>
-    <div class="section-card">
-      <div class="section-title">Flagged Risk Clauses</div>
-      <div class="section-body">
-        <div class="risk-list" id="cs-risks-list"><p class="panel-empty">None detected yet.</p></div>
-      </div>
-    </div>
-  </div>
-</aside>`;
+</div>`;
 
     _wire(state);
   }
@@ -163,10 +125,7 @@ const ChatView = (() => {
       const events = (r.data?.events || []).filter(e => e.role === 'user' || e.role === 'agent');
       _msgs = events.map(e => ({ role: e.role, text: e.text }));
       events.filter(e => e.role === 'user').forEach(e => _countUser(e.text, e.category));
-      _riskCount = 0;
-      events.filter(e => e.role === 'agent').forEach(e => { _riskCount += _countRisks(e.text); });
       _renderThreadOrEmpty();
-      _renderSidebar();
     }
   }
 
@@ -177,7 +136,6 @@ const ChatView = (() => {
     const empty = document.getElementById('ccEmpty');
     if (empty) empty.style.display = '';
     document.getElementById('ccThread').innerHTML = '';
-    _renderSidebar();
     _focusInput();
   }
 
@@ -353,8 +311,6 @@ const ChatView = (() => {
       const riskFlags = _detectRisks(text).map(r => ({ name: r.name, ctx: r.ctx }));
       API.addEvent(_state.session.id, { role: 'agent', text, category: 'qa', risk_flags: riskFlags });
     }
-    _riskCount += _detectRisks(text).length;
-    _renderSidebar();
 
     document.getElementById('ccInput')?.focus();
   }
@@ -365,7 +321,6 @@ const ChatView = (() => {
     const textEl = bubble.querySelector('.cc-msg-text') || bubble.querySelector('.cc-bubble');
     if (textEl) textEl.textContent = '⚠️ ' + msg;
     _msgs.push({ role: 'agent', text: '⚠️ ' + msg });
-    _renderSidebar();
   }
 
   function _setBubbleText(bubble, text) {
@@ -403,8 +358,6 @@ const ChatView = (() => {
     if (_state.session.id) {
       API.addEvent(_state.session.id, { role: 'user', text, category: cat, risk_flags: [] });
     }
-    _addLogItem(text);
-    _renderSidebar();
     _updateNavFooter();
   }
 
@@ -412,53 +365,11 @@ const ChatView = (() => {
     const k = cat || classifyText(text);
     _state.session.cats[k] = (_state.session.cats[k] || 0) + 1;
     _state.session.questions++;
-    _addLogItem(text);
     _updateNavFooter();
   }
 
   function _detectRisks(text) {
     return RISK_PATTERNS.filter(p => p.re.test(text || ''));
-  }
-
-  function _countRisks(text) {
-    return _detectRisks(text).length;
-  }
-
-  function _addLogItem(text) {
-    const log = document.getElementById('cs-log');
-    if (!log) return;
-    log.querySelector('.panel-empty')?.remove();
-    const ts = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const short = text.length > 65 ? text.slice(0, 65) + '…' : text;
-    const item = document.createElement('div');
-    item.className = 'log-item';
-    item.innerHTML = `<span class="log-time">${ts}</span><span class="log-q">${esc(short)}</span>`;
-    log.insertBefore(item, log.firstChild);
-  }
-
-  function _renderSidebar() {
-    const el = (id) => document.getElementById(id);
-    if (el('cs-questions')) el('cs-questions').textContent = _state.session.questions;
-    if (el('cs-risks')) el('cs-risks').textContent = _riskCount;
-
-    const cats = _state.session.cats || {};
-    const total = Object.values(cats).reduce((a, b) => a + b, 0) || 1;
-    ['qa', 'contract', 'compliance', 'research'].forEach(k => {
-      if (el(`cs-cnt-${k}`)) el(`cs-cnt-${k}`).textContent = cats[k] || 0;
-      if (el(`cs-bar-${k}`)) el(`cs-bar-${k}`).style.width = (((cats[k] || 0) / total) * 100).toFixed(1) + '%';
-    });
-
-    // Risk list: rebuild from the last few agent messages
-    const list = el('cs-risks-list');
-    if (list) {
-      const found = [];
-      _msgs.filter(m => m.role === 'agent').slice(-4).forEach(m => {
-        _detectRisks(m.text).forEach(r => { if (!found.some(f => f.name === r.name)) found.push(r); });
-      });
-      list.innerHTML = found.length
-        ? found.map(r => `<div class="risk-item"><div class="risk-name">${esc(r.name)}</div><div class="risk-ctx">${esc(r.ctx)}</div></div>`).join('')
-        : '<p class="panel-empty">None detected yet.</p>';
-    }
   }
 
   function _updateNavFooter() {
@@ -473,11 +384,8 @@ const ChatView = (() => {
     const r = await API.resetChat(_state.session.id);
     if (!r.ok) { toast('Reset failed: ' + r.error, 'error'); return; }
     _msgs = [];
-    _riskCount = 0;
     _state.session.questions = 0;
     _state.session.cats = { qa: 0, contract: 0, compliance: 0, research: 0 };
-    const log = document.getElementById('cs-log');
-    if (log) log.innerHTML = '<p class="panel-empty">No interactions yet — ask the advisor a question.</p>';
     _renderEmpty();
     toast('New conversation started.', 'success');
   }

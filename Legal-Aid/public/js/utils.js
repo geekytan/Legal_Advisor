@@ -34,10 +34,10 @@ function fmtDateTime(iso) {
 
 /* ── Category meta ──────────────────────────────────────────────────────── */
 const CAT_META = {
-  qa:         { label: 'Legal Q&A',    color: '#2f5fa3' },
-  contract:   { label: 'Contract',     color: '#6f4fc4' },
-  compliance: { label: 'Compliance',   color: '#c77d2e' },
-  research:   { label: 'Research',     color: '#3e7d4e' },
+  qa:         { label: 'Legal Q&A',    color: '#6b9bd8' },
+  contract:   { label: 'Contract',     color: '#a387e6' },
+  compliance: { label: 'Compliance',   color: '#dca558' },
+  research:   { label: 'Research',     color: '#74c490' },
 };
 
 function catColor(k) { return CAT_META[k]?.color || '#57606a'; }
@@ -62,10 +62,10 @@ function renderBarChart(containerId, catsData) {
   const wrap = document.getElementById(containerId);
   if (!wrap) return;
   const cats = [
-    { key:'qa',         label:'Q&A',        color:'#2f5fa3' },
-    { key:'contract',   label:'Contract',   color:'#6f4fc4' },
-    { key:'compliance', label:'Compliance', color:'#c77d2e' },
-    { key:'research',   label:'Research',   color:'#3e7d4e' },
+    { key:'qa',         label:'Q&A',        color:'#6b9bd8' },
+    { key:'contract',   label:'Contract',   color:'#a387e6' },
+    { key:'compliance', label:'Compliance', color:'#dca558' },
+    { key:'research',   label:'Research',   color:'#74c490' },
   ];
   const maxVal = Math.max(...cats.map(c => catsData[c.key] || 0), 1);
   const W=320, H=118, pad={top:12,right:10,bottom:30,left:28};
@@ -79,13 +79,13 @@ function renderBarChart(containerId, catsData) {
     const x   = pad.left+gap*(i+1)+barW*i;
     const y   = pad.top+(chartH-bh);
     bars += `<rect x="${x}" y="${y}" width="${barW}" height="${bh}" rx="4" fill="${c.color}" opacity=".92"/>`;
-    if (val>0) bars += `<text x="${x+barW/2}" y="${y-4}" text-anchor="middle" font-size="10" font-weight="600" fill="#6d7789">${val}</text>`;
-    bars += `<text x="${x+barW/2}" y="${H-pad.bottom+15}" text-anchor="middle" font-size="10" fill="#6d7789">${c.label}</text>`;
+    if (val>0) bars += `<text x="${x+barW/2}" y="${y-4}" text-anchor="middle" font-size="10" font-weight="600" fill="#a9b6cc">${val}</text>`;
+    bars += `<text x="${x+barW/2}" y="${H-pad.bottom+15}" text-anchor="middle" font-size="10" fill="#a9b6cc">${c.label}</text>`;
   });
   for (let t=0; t<=maxVal; t+=Math.ceil(maxVal/4)||1) {
     const ty = pad.top+chartH-(t/maxVal)*chartH;
-    ticks += `<line x1="${pad.left-4}" x2="${W-pad.right}" y1="${ty}" y2="${ty}" stroke="#e4ddcd" stroke-width="1"/>`;
-    ticks += `<text x="${pad.left-6}" y="${ty+3}" text-anchor="end" font-size="9" fill="#97a1b3">${t}</text>`;
+    ticks += `<line x1="${pad.left-4}" x2="${W-pad.right}" y1="${ty}" y2="${ty}" stroke="rgba(255,255,255,0.14)" stroke-width="1"/>`;
+    ticks += `<text x="${pad.left-6}" y="${ty+3}" text-anchor="end" font-size="9" fill="#8b98b0">${t}</text>`;
   }
   wrap.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block">${ticks}${bars}</svg>`;
 }
