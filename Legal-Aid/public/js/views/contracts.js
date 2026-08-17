@@ -20,7 +20,9 @@ const ContractsView = (() => {
 
   <!-- Upload zone -->
   <div class="upload-zone" id="uploadZone">
-    <div class="uz-icon">📄</div>
+    <div class="uz-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    </div>
     <h3>Drop your contract here</h3>
     <p>PDF or DOCX · max 10 MB</p>
     <div style="margin-top:14px">
@@ -58,14 +60,16 @@ const ContractsView = (() => {
     const zone   = document.getElementById('uploadZone');
     const result = document.getElementById('contractResult');
 
-    zone.innerHTML = `<div class="uz-icon">⏳</div><h3>Parsing ${esc(file.name)}…</h3>`;
+    zone.innerHTML = `<div class="uz-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><h3>Parsing ${esc(file.name)}…</h3>`;
     result.style.display = 'none';
 
     const r = await API.parseContract(file, _state?.session?.id);
 
     // Restore zone
     zone.innerHTML = `
-      <div class="uz-icon">📄</div>
+      <div class="uz-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      </div>
       <h3>Drop your contract here</h3>
       <p>PDF or DOCX · max 10 MB</p>
       <div style="margin-top:14px">
@@ -111,7 +115,10 @@ ${risks.length ? `
   <div class="section-title">Advisor Evaluation</div>
   <div class="section-body">
     <p style="margin:0 0 12px;font-size:13px;color:var(--muted)">Send the extracted text to the <strong>Legal Aid Advisor</strong> chatbot for a full risk evaluation — it will review the document and suggest what to negotiate.</p>
-    <button class="btn primary" id="evaluateBtn">⚖️ Evaluate with Advisor</button>
+    <button class="btn primary" id="evaluateBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>
+      Evaluate with Advisor
+    </button>
     <p style="margin:10px 0 0;font-size:12px;color:var(--muted)">Sends the first ${WxoChat.MAX_CHAT_CHARS.toLocaleString()} characters of the document to the chat.</p>
   </div>
 </div>
@@ -155,7 +162,7 @@ ${text}`;
     ChatView.externalSend(prompt);
     toast(`Sent ${fileName} to the advisor — evaluating now.`);
 
-    if (btn) { btn.disabled = false; btn.textContent = '⚖️ Evaluate with Advisor'; }
+    if (btn) { btn.disabled = false; btn.innerHTML = 'Evaluate with Advisor'; }
   }
 
   const RISK_PATTERNS = [

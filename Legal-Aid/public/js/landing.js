@@ -11,6 +11,67 @@
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
 
+  /* ── Scroll progress bar ──────────────────────────────────────────────── */
+  const progress = document.getElementById('lpProgress');
+  if (progress) {
+    const onProgress = () => {
+      const h = document.documentElement;
+      const max = h.scrollHeight - h.clientHeight;
+      progress.style.transform = 'scaleX(' + (max > 0 ? h.scrollTop / max : 0) + ')';
+    };
+    window.addEventListener('scroll', onProgress, { passive: true });
+    window.addEventListener('resize', onProgress);
+    onProgress();
+  }
+
+  /* ── Terminal log: type lines into the live network window ───────────── */
+  const termBody = document.getElementById('termBody');
+  if (termBody && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const LINES = [
+      { t: '09:41', c: 'ev',   s: 'question → tenant rights · security deposit return window' },
+      { t: '09:43', c: 'ok',   s: 'review complete · lease agreement — 1 risk clause flagged' },
+      { t: '09:44', c: 'info', s: 'contract uploaded · service-agreement-2026.docx · 14 pages' },
+      { t: '09:47', c: 'ev',   s: 'question → employment · non-compete scope enforceability' },
+      { t: '09:51', c: 'info', s: 'flagged · auto-renewal clause detected in clause 9.2' },
+      { t: '09:58', c: 'ok',   s: 'review complete · liability capped at fees paid ✓' },
+      { t: '10:02', c: 'ev',   s: 'question → compliance · data-handling obligations' },
+      { t: '10:05', c: 'ok',   s: 'session archived · history available in workspace' },
+    ];
+    const cursor = '<span class="lp-term-cursor"></span>';
+    const pad = n => String(n).padStart(2, '0');
+
+    const renderLine = (ln, i) => {
+      const div = document.createElement('div');
+      div.className = 'lp-term-line';
+      div.innerHTML = '<span class="lp-term-time">' + ln.t + '</span>' +
+                      '<span class="lp-term-' + ln.c + '">' + ln.s + '</span>';
+      termBody.appendChild(div);
+      requestAnimationFrame(() => requestAnimationFrame(() => div.classList.add('in')));
+    };
+
+    const run = () => {
+      termBody.innerHTML = '';
+      let i = 0;
+      const tick = () => {
+        if (i >= LINES.length) {
+          termBody.insertAdjacentHTML('beforeend', cursor);
+          return;
+        }
+        renderLine(LINES[i], i);
+        i++;
+        setTimeout(tick, 900);
+      };
+      tick();
+    };
+
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { run(); io.disconnect(); }
+      });
+    }, { threshold: 0.3 });
+    io.observe(termBody.closest('.lp-term-window'));
+  }
+
   /* ── Mobile menu ─────────────────────────────────────────────────────── */
   const burger = document.getElementById('lpBurger');
   const links  = document.getElementById('lpLinks');
